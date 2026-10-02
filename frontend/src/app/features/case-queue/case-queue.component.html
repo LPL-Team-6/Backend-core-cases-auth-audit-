@@ -1,0 +1,49 @@
+<h1>Case queue</h1>
+
+<form class="new-case" (submit)="$event.preventDefault(); createCase()">
+  <label for="new-case-name">New case - applicant full name</label>
+  <input id="new-case-name" type="text" required [value]="newApplicantName()" (input)="newApplicantName.set($any($event.target).value)" />
+  <button type="submit" [disabled]="creating()">{{ creating() ? 'Creating…' : 'Create case' }}</button>
+</form>
+
+<div class="filters">
+  <label for="status-filter">Status</label>
+  <select id="status-filter" (change)="setStatusFilter($any($event.target).value)">
+    <option value="All">All statuses</option>
+    @for (status of statuses; track status) {
+      <option [value]="status">{{ status }}</option>
+    }
+  </select>
+</div>
+
+@if (loading()) {
+  <p>Loading cases…</p>
+} @else if (error()) {
+  <app-error-banner [problem]="error()!" (retry)="load()" />
+} @else if (visibleCases().length === 0) {
+  <p>No cases match this filter.</p>
+} @else {
+  <table class="case-table">
+    <caption class="sr-only">Cases, newest first</caption>
+    <thead>
+      <tr>
+        <th scope="col">Applicant</th>
+        <th scope="col">Status</th>
+        <th scope="col">Firm</th>
+        <th scope="col">Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (c of visibleCases(); track c.id) {
+        <tr>
+          <td>
+            <a [routerLink]="['/cases', c.id]">{{ c.applicantFullName || '(unnamed applicant)' }}</a>
+          </td>
+          <td><app-case-status-badge [status]="c.status!" /></td>
+          <td>{{ c.firmId }}</td>
+          <td>{{ c.createdAt | date: 'medium' }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
