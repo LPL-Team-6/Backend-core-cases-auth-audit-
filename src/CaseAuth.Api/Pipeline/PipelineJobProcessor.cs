@@ -108,7 +108,7 @@ public class PipelineJobProcessor(
                 CaseId = job.CaseId,
                 Code = result.Code,
                 Severity = result.Severity,
-                Source = FindingSource.Ai,
+                Source = FindingSource.Deterministic,
                 Message = result.Message,
                 Score = result.Score,
                 SourceFields = sourceFields,

@@ -1545,7 +1545,11 @@
           "GovernmentId",
           "ProofOfAddress",
           "Financial",
-          "Other"
+          "Other",
+          "Application",
+          "W9",
+          "BeneficialOwnership",
+          "FormationDocument"
         ],
         "type": "string"
       },
@@ -1656,7 +1660,8 @@
       "FindingSource": {
         "enum": [
           "Ai",
-          "Manual"
+          "Manual",
+          "Deterministic"
         ],
         "type": "string"
       },

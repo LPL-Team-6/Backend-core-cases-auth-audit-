@@ -8,5 +8,6 @@ import { FindingSource } from './finding-source';
  */
 export const FINDING_SOURCE: FindingSource[] = [
   'Ai',
-  'Manual'
+  'Manual',
+  'Deterministic'
 ];

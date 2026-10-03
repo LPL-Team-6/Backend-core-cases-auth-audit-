@@ -10,5 +10,9 @@ export const DOCUMENT_TYPE: DocumentType[] = [
   'GovernmentId',
   'ProofOfAddress',
   'Financial',
-  'Other'
+  'Other',
+  'Application',
+  'W9',
+  'BeneficialOwnership',
+  'FormationDocument'
 ];

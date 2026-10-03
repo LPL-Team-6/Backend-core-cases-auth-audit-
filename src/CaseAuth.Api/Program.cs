@@ -4,6 +4,7 @@ using CaseAuth.Api.Data;
 using CaseAuth.Api.Errors;
 using CaseAuth.Api.Infrastructure;
 using CaseAuth.Api.Pipeline;
+using CaseAuth.Api.Screening;
 using CaseAuth.Api.Services;
 using CaseAuth.Api.Storage;
 using Microsoft.AspNetCore.Authentication;
@@ -63,13 +64,24 @@ builder.Services.AddScoped<IFileStorageService>(sp =>
 });
 
 // --- Background pipeline ---------------------------------------------------------------
-// FixtureDocumentExtractor/FixtureScreeningService are still placeholders for Teammates 1/3 -
-// same DI-swap pattern as IFileStorageService above. IAiReviewer (Teammate 4) now points at the
-// real AI Review Agent service by default; AiReviewAgent:Mode=Deterministic switches back to
-// the escalate-only stub for demoing without that service running.
+// FixtureDocumentExtractor is still a placeholder for Teammate 1 - same DI-swap pattern as
+// IFileStorageService above. IScreeningService (Teammate 3) now points at the real rules
+// engine; IAiReviewer (Teammate 4) now points at the real AI Review Agent service by default -
+// AiReviewAgent:Mode=Deterministic switches back to the escalate-only stub for demoing without
+// that service running.
 builder.Services.Configure<PipelineOptions>(builder.Configuration.GetSection(PipelineOptions.SectionName));
 builder.Services.AddScoped<IDocumentExtractor, FixtureDocumentExtractor>();
-builder.Services.AddScoped<IScreeningService, FixtureScreeningService>();
+
+builder.Services.Configure<ScreeningOptions>(builder.Configuration.GetSection(ScreeningOptions.SectionName));
+builder.Services.AddSingleton(sp =>
+{
+    var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<ScreeningOptions>>().Value;
+    options.Validate();
+    return options;
+});
+builder.Services.AddSingleton<ScreeningEngine>();
+builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
+builder.Services.AddScoped<IScreeningService, RuleEngineScreeningService>();
 
 builder.Services.Configure<AiReviewAgentOptions>(builder.Configuration.GetSection(AiReviewAgentOptions.SectionName));
 builder.Services.AddHttpClient<RemoteAiReviewer>((sp, client) =>

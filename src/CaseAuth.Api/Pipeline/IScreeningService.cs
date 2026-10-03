@@ -9,16 +9,16 @@ public record ScreeningFindingResult(
     double? Score,
     IReadOnlyList<Guid> SourceFieldIds);
 
-// Provisional - owned by Teammate 3 per the project brief (name matching, cross-document
-// consistency, validity checks, sanctions screening, red flags). This exact signature is a
-// guess at what their deterministic rules engine needs; expect it to change once they're
-// building against it.
+// Owned by Teammate 3 per the project brief (name matching, cross-document consistency,
+// validity checks, sanctions screening, red flags). Implemented by RuleEngineScreeningService,
+// which wraps the deterministic rules engine in ../Screening/ScreeningEngine.cs.
 public interface IScreeningService
 {
     Task<IReadOnlyList<ScreeningFindingResult>> ScreenAsync(Guid caseId, CancellationToken ct);
 }
 
-// Registered by default until Teammate 3's rules engine exists. Returns no findings.
+// Kept for tests/demoing without the rules engine. No longer registered by default - see
+// Program.cs.
 public class FixtureScreeningService : IScreeningService
 {
     public Task<IReadOnlyList<ScreeningFindingResult>> ScreenAsync(Guid caseId, CancellationToken ct) =>

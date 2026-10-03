@@ -53,8 +53,10 @@ the `IFileStorageService`-style swap-via-DI pattern already used for storage:
 
 - `IDocumentExtractor` (Teammate 1: `TextractExtractor`/`FixtureExtractor`) - registered stub
   (`FixtureDocumentExtractor`) returns no fields.
-- `IScreeningService` (Teammate 3: the rules engine) - registered stub
-  (`FixtureScreeningService`) returns no findings.
+- `IScreeningService` (Teammate 3) - now wired to the real **rules engine**
+  (`Screening/ScreeningEngine.cs`) via `RuleEngineScreeningService`
+  (`Pipeline/RuleEngineScreeningService.cs`), not a stub. See "Connecting the screening engine"
+  below.
 - `IAiReviewer` (Teammate 4) - now wired to the real **AI Review Agent** service
   (`../AI-Review-Agent`) via `RemoteAiReviewer` (`Pipeline/RemoteAiReviewer.cs`), not a stub.
   `AiReviewAgent:Mode` in `appsettings.json` (default `Remote`) can be set to `Deterministic` to
@@ -80,6 +82,37 @@ The `Dockerfile` builds and runs correctly, but **the container won't start at a
 `Program.cs` refuses to register the dev-only auth handler there (on purpose, since there's no
 real auth yet). Whoever wires up the Kubernetes manifests needs that env var in the
 Deployment/ConfigMap for now, until real authentication exists.
+
+## Connecting the screening engine
+
+`Screen` jobs now run the real rules engine (`Screening/ScreeningEngine.cs`, ported from the
+[Team3-Screening-and-rules-engine](../Team3-Screening-and-rules-engine) repo's `nam-branch` -
+that repo's `main` only has the generated Angular client, the actual engine was never merged
+there) instead of returning no findings. Unlike `RemoteAiReviewer`, this isn't a network seam:
+Teammate 3 built the engine directly against this repo's own entities, so it runs in-process,
+in the same transaction as the rest of the pipeline step.
+
+`RuleEngineScreeningService` builds a `ScreeningInput` from the case's documents and extracted
+fields and calls `ScreeningEngine.Evaluate`, which checks name/DOB/address/TIN consistency
+across documents, document expiry and plausibility, PO-box/high-risk-jurisdiction/registered-
+agent address patterns, and a sanctions-list match (`SanctionsSnapshot` - a synthetic fixture by
+default; `Screening:SanctionsMode=OfacXml` plus `Screening:OfacXmlPath`/`OfacSnapshotDate` can
+point it at a real legacy SDN XML export). Findings are scored (`Finding.Score`, 0-1 risk) and
+persisted with `Source=Deterministic`.
+
+Two things the original engine supports that this backend doesn't model yet, so they're
+stubbed in `RuleEngineScreeningService`:
+- Business ("Entity") applicants and their extra document/field requirements - `ApplicantKind`
+  is always `Individual`, since `Applicant` has no `Kind` column.
+- Cross-case shared-contact detection (same address/phone reused on an unrelated case) -
+  `SharedContacts` is always empty, since there's no case-relationship concept to scope it by.
+
+`DocumentType` gained four members the engine's required-document rules are keyed on
+(`Application`, `W9`, `BeneficialOwnership`, `FormationDocument`) - additive only, no migration
+needed since enums are stored as ints. Verified by running the real API: enqueueing `Extract`
+then `Screen` for a case with no uploaded documents produces a `High`-severity
+`MISSING_REQUIRED_DOCUMENT` finding and moves the case to `Screened`, exactly as the engine's
+own ported unit tests (`tests/CaseAuth.Api.Tests/ScreeningEngineTests.cs`) expect.
 
 ## Connecting the AI Review Agent
 

@@ -20,6 +20,13 @@ public enum DocumentType
     ProofOfAddress,
     Financial,
     Other,
+
+    // Added for Teammate 3's screening engine (Screening/ScreeningEngine.cs), whose required-
+    // document/field rules are keyed on these types.
+    Application,
+    W9,
+    BeneficialOwnership,
+    FormationDocument,
 }
 
 // Low/Medium/High (not Info/Warning/Critical) to match the vocabulary Teammate 3's screening
@@ -35,6 +42,9 @@ public enum FindingSource
 {
     Ai,
     Manual,
+
+    // Teammate 3's rules engine - deterministic, not model-generated.
+    Deterministic,
 }
 
 public enum AiRecommendation
@@ -73,4 +83,14 @@ public enum PipelineJobStatus
     Processing,
     Completed,
     Failed,
+}
+
+// Individual vs. business applicant, used by Teammate 3's screening engine to pick which
+// documents/fields are required and which sanctions-list entries are comparable. This backend
+// only models individual applicants today (Applicant has no Kind column), so
+// RuleEngineScreeningService always passes Individual - see its comment.
+public enum ApplicantKind
+{
+    Individual,
+    Entity,
 }
