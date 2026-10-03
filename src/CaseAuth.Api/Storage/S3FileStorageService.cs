@@ -10,4 +10,8 @@ public class S3FileStorageService : IFileStorageService
         throw new NotImplementedException(
             "S3 storage mode is not implemented in this scaffold. Use Storage:Mode=LocalDisk, " +
             "or implement this class against the AWS SDK for S3 before enabling it.");
+
+    public Task<Stream> OpenReadAsync(string storageKey, CancellationToken ct) =>
+        throw new NotImplementedException(
+            "S3 storage mode is not implemented in this scaffold. Use Storage:Mode=LocalDisk.");
 }
