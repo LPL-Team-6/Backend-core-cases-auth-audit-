@@ -74,10 +74,17 @@ public class PipelineJobProcessor(
 
     private async Task ProcessExtractAsync(ProcessingJob job, CancellationToken ct)
     {
-        var documents = await db.Documents.Where(d => d.CaseId == job.CaseId).ToListAsync(ct);
+        // Skip documents that already have fields (extracted on an earlier run, or recorded by
+        // hand via POST /extracted-fields). Re-extracting them would add a second value per field,
+        // which screening reports as AMBIGUOUS_FIELD.
+        var documents = await db.Documents
+            .Where(d => d.CaseId == job.CaseId && !d.ExtractedFields.Any())
+            .ToListAsync(ct);
+        var fieldCount = 0;
         foreach (var document in documents)
         {
             var results = await extractor.ExtractAsync(document, ct);
+            fieldCount += results.Count;
             foreach (var result in results)
             {
                 db.ExtractedFields.Add(new ExtractedField
@@ -90,7 +97,8 @@ public class PipelineJobProcessor(
             }
         }
 
-        ApplyTransition(job.Case!, "extract", "Pipeline.Extract.Completed");
+        ApplyTransition(job.Case!, "extract", "Pipeline.Extract.Completed",
+            System.Text.Json.JsonSerializer.Serialize(new { documentsExtracted = documents.Count, fieldCount }));
         await db.SaveChangesAsync(ct);
     }
 
