@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { forkJoin } from 'rxjs';
 
@@ -130,11 +130,18 @@ export class CaseDetailComponent {
   });
 
   constructor() {
-    this.load();
+    // A required signal input isn't set yet during construction (reading it here throws
+    // NG0950) - effect() defers its first run until after Angular has set it. This also
+    // re-fetches correctly if the router reuses this component instance for a different
+    // :caseId (same route, different param - e.g. following a link from one case to another),
+    // which a plain ngOnInit (runs once per instance) would miss.
+    effect(() => {
+      this.selectedFindingId.set(null);
+      this.load(this.caseId());
+    });
   }
 
-  load(): void {
-    const caseId = this.caseId();
+  load(caseId: string = this.caseId()): void {
     this.loading.set(true);
     this.error.set(null);
 
