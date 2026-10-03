@@ -19,6 +19,7 @@ public class FindingsController(CaseAuthDbContext db, ICaseAccessor caseAccessor
     {
         await caseAccessor.GetScopedCaseAsync(db, caseId, ct);
         var findings = await db.Findings
+            .Include(f => f.SourceFields)
             .Where(f => f.CaseId == caseId)
             .OrderBy(f => f.CreatedAt)
             .ToListAsync(ct);
