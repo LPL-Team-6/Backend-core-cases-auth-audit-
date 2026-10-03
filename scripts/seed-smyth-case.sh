@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Seeds the "Smyth" demo case the Angular workbench's UX acceptance criteria reference
 # (name-mismatch and address-mismatch findings, reachable from the queue), using only real,
-# in-spec endpoints - there is no backend reset/seed endpoint (see frontend/MISSING_ENDPOINTS.md
-# - "Reset demo" is stubbed, not built). Run this against a running CaseAuth.Api instead:
+# in-spec endpoints - there is no backend reset/seed endpoint (see MISSING_ENDPOINTS.md in the
+# frontend repo, LPL-Team-6/FrontEnd - "Reset demo" is stubbed, not built). Run this against a
+# running CaseAuth.Api instead:
 #
 #   BASE_URL=http://localhost:5020 ./scripts/seed-smyth-case.sh
 #
@@ -49,7 +50,7 @@ ADDRESS_FIELDS=$(curl -sf -X POST "$BASE_URL/api/documents/$ADDRESS_DOC_ID/extra
 ADDRESS_NAME_FIELD_ID=$(echo "$ADDRESS_FIELDS" | json_get "[0]['id']")
 ADDRESS_ADDRESS_FIELD_ID=$(echo "$ADDRESS_FIELDS" | json_get "[1]['id']")
 
-echo "==> Recording findings (rule IDs match frontend/src/app/core/finding-todo.ts)"
+echo "==> Recording findings (rule IDs match core/finding-todo.ts in the frontend repo)"
 curl -sf -X POST "$BASE_URL/api/cases/$CASE_ID/findings" -H "X-Dev-User: analyst1" -H "Content-Type: application/json" \
   -d "{\"code\":\"NAME_MISMATCH\",\"severity\":\"High\",\"message\":\"The name on the government ID doesn't match the proof of address.\",\"score\":0.9,\"sourceFieldIds\":[\"$ID_NAME_FIELD_ID\",\"$ADDRESS_NAME_FIELD_ID\"]}" \
   > /dev/null
