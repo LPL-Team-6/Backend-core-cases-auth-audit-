@@ -27,7 +27,7 @@ const OUTCOME_BADGE: Record<string, string> = {
             </div>
             <div class="timeline__meta">
               {{ event.actorUsername }}
-              @if (event.aiReviewVersion != null) {
+              @if (event.aiReviewVersion !== null && event.aiReviewVersion !== undefined) {
                 · AI review v{{ event.aiReviewVersion }}
               }
               @if (event.correlationId) {

@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 
 import { DEV_USERS, DevUserService } from './dev-user.service';
+import { isAdvisor } from './role-view';
 
 @Component({
   selector: 'app-dev-user-switcher',
@@ -12,7 +13,9 @@ import { DEV_USERS, DevUserService } from './dev-user.service';
         (change)="devUser.setUser($any($event.target).value)"
       >
         @for (user of users; track user.username) {
-          <option [value]="user.username">{{ user.displayName }} · {{ user.firmId }} · {{ user.role }}</option>
+          <option [value]="user.username">
+            {{ user.displayName }} · {{ user.firmId }} · {{ isAdvisor(user.role) ? 'Advisor' : 'Reviewer' }}
+          </option>
         }
       </select>
     </label>
@@ -36,7 +39,7 @@ import { DEV_USERS, DevUserService } from './dev-user.service';
   `,
 })
 export class DevUserSwitcherComponent {
+  readonly devUser = inject(DevUserService);
   readonly users = DEV_USERS;
-
-  constructor(readonly devUser: DevUserService) {}
+  readonly isAdvisor = isAdvisor;
 }

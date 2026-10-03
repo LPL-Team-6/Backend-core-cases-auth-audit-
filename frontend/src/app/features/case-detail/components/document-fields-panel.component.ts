@@ -4,9 +4,15 @@ import { DatePipe } from '@angular/common';
 import { DocumentResponse } from '@caseauth/angular-client/src/models/document-response';
 import { AiReviewInputFieldResponse } from '@caseauth/angular-client/src/models/ai-review-input-field-response';
 
+interface Citer {
+  code: string;
+  score: number | null;
+}
+
 interface FieldRow {
   field: AiReviewInputFieldResponse;
-  citingFindingCodes: string[];
+  citers: Citer[];
+  selected: boolean;
 }
 
 interface DocumentGroup {
@@ -50,17 +56,34 @@ interface DocumentGroup {
             </thead>
             <tbody>
               @for (row of group.fields; track row.field.id) {
-                <tr [class.fields-table__row--flagged]="row.citingFindingCodes.length > 0">
+                <tr
+                  [class.fields-table__row--flagged]="row.citers.length > 0"
+                  [class.fields-table__row--selected]="row.selected"
+                >
                   <th scope="row">{{ row.field.fieldName }}</th>
                   <td>
                     {{ row.field.fieldValue }}
-                    @if (row.citingFindingCodes.length > 0) {
-                      <span class="badge badge--warning" [title]="'Cited by finding(s): ' + row.citingFindingCodes.join(', ')">
-                        ⚠ {{ row.citingFindingCodes.join(', ') }}
+                    @if (row.citers.length > 0) {
+                      <span class="badge badge--warning" [title]="'Cited by finding(s): ' + citerCodes(row)">
+                        <span aria-hidden="true">⚠</span> {{ citerCodes(row) }}
                       </span>
                     }
                   </td>
-                  <td>{{ row.field.confidence != null ? (row.field.confidence * 100).toFixed(0) + '%' : '—' }}</td>
+                  <td>
+                    {{ confidencePercent(row.field.confidence) ?? '—' }}
+                    @if (confidencePercent(row.field.confidence)) {
+                      <details class="confidence-why">
+                        <summary>Why?</summary>
+                        <!-- R12: never show a confidence number that came from the model's own
+                             text - both numbers here are read straight from ExtractedField and
+                             Finding, never parsed out of AI-generated prose. -->
+                        <p>Extraction confidence: {{ confidencePercent(row.field.confidence) }}</p>
+                        @for (citer of row.citers; track citer.code) {
+                          <p>Rule match score ({{ citer.code }}): {{ citer.score ?? 'n/a' }}</p>
+                        }
+                      </details>
+                    }
+                  </td>
                 </tr>
               }
             </tbody>
@@ -112,22 +135,61 @@ interface DocumentGroup {
     .fields-table__row--flagged {
       background: var(--color-warning-bg);
     }
+
+    .fields-table__row--selected {
+      background: var(--color-accent);
+      color: var(--color-accent-contrast);
+      outline: 2px solid var(--color-accent);
+    }
+
+    .confidence-why {
+      display: inline;
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+
+      summary {
+        display: inline;
+        cursor: pointer;
+      }
+
+      p {
+        margin: 0.25rem 0 0;
+      }
+    }
   `,
   imports: [DatePipe],
 })
 export class DocumentFieldsPanelComponent {
   readonly documents = input.required<DocumentResponse[]>();
   readonly fields = input.required<AiReviewInputFieldResponse[]>();
-  // Maps an extracted field's id to the codes of findings that cite it as a mismatch source.
-  readonly citingFindingCodesByFieldId = input.required<ReadonlyMap<string, string[]>>();
+  // Maps an extracted field's id to the findings (code + score) that cite it as a mismatch
+  // source - drives both the always-on "cited by" badge and R12's "Why?" explanation.
+  readonly citingFindingsByFieldId = input.required<ReadonlyMap<string, Citer[]>>();
+  // Field ids belonging to whichever finding is currently selected in the findings panel (R1:
+  // click-to-source) - distinct from citingFindingsByFieldId, which flags a field if ANY
+  // finding cites it, not just the one the reviewer just clicked.
+  readonly selectedFieldIds = input<ReadonlySet<string>>(new Set());
 
   readonly groups = computed<DocumentGroup[]>(() => {
-    const citing = this.citingFindingCodesByFieldId();
+    const citing = this.citingFindingsByFieldId();
+    const selected = this.selectedFieldIds();
     return this.documents().map((document) => ({
       document,
       fields: this.fields()
         .filter((f) => f.documentId === document.id)
-        .map((field) => ({ field, citingFindingCodes: citing.get(field.id!) ?? [] })),
+        .map((field) => ({
+          field,
+          citers: citing.get(field.id!) ?? [],
+          selected: selected.has(field.id!),
+        })),
     }));
   });
+
+  citerCodes(row: FieldRow): string {
+    return row.citers.map((c) => c.code).join(', ');
+  }
+
+  confidencePercent(confidence: number | null | undefined): string | null {
+    return confidence === null || confidence === undefined ? null : `${(confidence * 100).toFixed(0)}%`;
+  }
 }

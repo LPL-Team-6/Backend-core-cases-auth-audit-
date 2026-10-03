@@ -1,4 +1,6 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, effect, inject, signal } from '@angular/core';
+
+import { CaseApiService } from './case-api.service';
 
 export interface DevUser {
   username: string;
@@ -20,7 +22,27 @@ const STORAGE_KEY = 'caseauth.devUser';
 
 @Injectable({ providedIn: 'root' })
 export class DevUserService {
+  private readonly caseApi = inject(CaseApiService);
+
   readonly current = signal<DevUser>(this.restore());
+
+  // The backend's own user id (e.g. "u-analyst1"), used to filter "my cases" by
+  // Case.createdByUserId. Fetched from /api/me rather than hardcoded here, so this file never
+  // has to know the backend's internal id scheme. Null until that first call resolves -
+  // consumers (e.g. the queue's "my cases" filter) treat null as "don't filter yet".
+  readonly userId = signal<string | null>(null);
+
+  constructor() {
+    effect(() => {
+      // Re-fetch whenever the selected identity changes - current() is read here so the
+      // effect re-runs on every switch, not just once at startup.
+      this.current();
+      this.caseApi.me().subscribe({
+        next: (me) => this.userId.set(me.userId ?? null),
+        error: () => this.userId.set(null),
+      });
+    });
+  }
 
   setUser(username: string): void {
     const user = DEV_USERS.find((u) => u.username === username);

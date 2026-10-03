@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { CaseAuthApi } from '@caseauth/angular-client/src/case-auth-api';
@@ -43,7 +43,7 @@ import { MeResponse } from '@caseauth/angular-client/src/models/me-response';
 // the generated-client wiring (which fn, which $Json variant) in one place.
 @Injectable({ providedIn: 'root' })
 export class CaseApiService {
-  constructor(private readonly api: CaseAuthApi) {}
+  private readonly api = inject(CaseAuthApi);
 
   me(): Observable<MeResponse> {
     return this.api.invoke(meGet$Json, {});

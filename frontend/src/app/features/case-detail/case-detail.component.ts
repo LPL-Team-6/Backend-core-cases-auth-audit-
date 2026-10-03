@@ -4,6 +4,9 @@ import { forkJoin } from 'rxjs';
 
 import { CaseApiService } from '../../core/case-api.service';
 import { toApiProblem, ApiProblem } from '../../core/api-error';
+import { DevUserService } from '../../core/dev-user.service';
+import { isAdvisor, isReviewer } from '../../core/role-view';
+import { findingToTodo } from '../../core/finding-todo';
 
 import { CaseResponse } from '@caseauth/angular-client/src/models/case-response';
 import { DocumentResponse } from '@caseauth/angular-client/src/models/document-response';
@@ -14,13 +17,16 @@ import { AuditEventResponse } from '@caseauth/angular-client/src/models/audit-ev
 import { AiReviewInputFieldResponse } from '@caseauth/angular-client/src/models/ai-review-input-field-response';
 
 import { ErrorBannerComponent } from '../../shared/error-banner.component';
-import { CaseStatusBadgeComponent } from './components/case-status-badge.component';
+import { CaseSummaryBarComponent } from './components/case-summary-bar.component';
 import { DocumentFieldsPanelComponent } from './components/document-fields-panel.component';
+import { FindingComparisonComponent } from './components/finding-comparison.component';
 import { FindingsPanelComponent } from './components/findings-panel.component';
 import { AiReviewPanelComponent } from './components/ai-review-panel.component';
 import { AuditTimelineComponent } from './components/audit-timeline.component';
 import { DecisionActionsComponent } from './components/decision-actions.component';
 import { DocumentUploadComponent } from './components/document-upload.component';
+import { AdvisorTodoListComponent } from './components/advisor-todo-list.component';
+import { DraftClientMessageComponent } from './components/draft-client-message.component';
 
 interface CaseDetailData {
   caseResponse: CaseResponse;
@@ -37,26 +43,34 @@ interface CaseDetailData {
   imports: [
     DatePipe,
     ErrorBannerComponent,
-    CaseStatusBadgeComponent,
+    CaseSummaryBarComponent,
     DocumentFieldsPanelComponent,
+    FindingComparisonComponent,
     FindingsPanelComponent,
     AiReviewPanelComponent,
     AuditTimelineComponent,
     DecisionActionsComponent,
     DocumentUploadComponent,
+    AdvisorTodoListComponent,
+    DraftClientMessageComponent,
   ],
   templateUrl: './case-detail.component.html',
   styleUrl: './case-detail.component.scss',
 })
 export class CaseDetailComponent {
   private readonly caseApi = inject(CaseApiService);
+  private readonly devUser = inject(DevUserService);
 
   // Bound automatically from the :caseId route param via withComponentInputBinding().
   readonly caseId = input.required<string>();
 
   readonly loading = signal(true);
   readonly error = signal<ApiProblem | null>(null);
+  readonly selectedFindingId = signal<string | null>(null);
   private readonly data = signal<CaseDetailData | null>(null);
+
+  readonly advisorView = computed(() => isAdvisor(this.devUser.current().role));
+  readonly reviewerView = computed(() => isReviewer(this.devUser.current().role));
 
   readonly caseResponse = computed(() => this.data()?.caseResponse ?? null);
   readonly documents = computed(() => this.data()?.documents ?? []);
@@ -65,6 +79,10 @@ export class CaseDetailComponent {
   readonly aiReviews = computed(() => this.data()?.aiReviews ?? []);
   readonly decisions = computed(() => this.data()?.decisions ?? []);
   readonly auditEvents = computed(() => this.data()?.auditEvents ?? []);
+
+  // R7's "count of blocking issues" - derived from the same rule-ID lookup R2's to-do list
+  // uses, so the summary bar's number always matches what the advisor sees below it.
+  readonly blockingCount = computed(() => this.findings().filter((f) => findingToTodo(f).tag === 'Blocking').length);
 
   readonly latestAiReviewId = computed(() => {
     const reviews = this.aiReviews();
@@ -86,18 +104,29 @@ export class CaseDetailComponent {
     return map;
   });
 
-  // Inverse: extracted field id -> the codes of findings that cite it, so the document/fields
-  // panel can highlight exactly which fields a cross-document mismatch pulled from.
-  readonly citingFindingCodesByFieldId = computed(() => {
-    const map = new Map<string, string[]>();
+  // Inverse: extracted field id -> the findings (code + rule match score) that cite it, so the
+  // document/fields panel can badge which fields ANY finding cites, and R12's "Why?" link can
+  // show the rule match score alongside the field's own extraction confidence.
+  readonly citingFindingsByFieldId = computed(() => {
+    const map = new Map<string, { code: string; score: number | null }[]>();
     for (const finding of this.findings()) {
       for (const fieldId of finding.sourceFieldIds ?? []) {
-        const codes = map.get(fieldId) ?? [];
-        codes.push(finding.code ?? finding.id ?? 'finding');
-        map.set(fieldId, codes);
+        const citers = map.get(fieldId) ?? [];
+        citers.push({ code: finding.code ?? finding.id ?? 'finding', score: finding.score ?? null });
+        map.set(fieldId, citers);
       }
     }
     return map;
+  });
+
+  // R1: the SELECTED finding's source fields - the brighter, click-triggered highlight.
+  private readonly selectedFinding = computed(() => this.findings().find((f) => f.id === this.selectedFindingId()) ?? null);
+
+  readonly selectedFieldIds = computed<ReadonlySet<string>>(() => new Set(this.selectedFinding()?.sourceFieldIds ?? []));
+
+  readonly selectedComparisonFields = computed(() => {
+    const ids = this.selectedFieldIds();
+    return ids.size === 0 ? [] : this.fields().filter((f) => f.id && ids.has(f.id));
   });
 
   constructor() {

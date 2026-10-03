@@ -5,54 +5,70 @@
 } @else if (caseResponse()) {
   @let c = caseResponse()!;
 
-  <header class="case-header">
-    <div>
-      <h1>{{ c.applicantFullName || '(unnamed applicant)' }}</h1>
-      <p class="case-header__meta">
-        Firm {{ c.firmId }} · created {{ c.createdAt | date: 'medium' }} · updated {{ c.updatedAt | date: 'medium' }}
-      </p>
-    </div>
-    <app-case-status-badge [status]="c.status!" />
-  </header>
+  <app-case-summary-bar [case]="c" [blockingCount]="blockingCount()" />
 
   <section>
     <app-decision-actions [case]="c" [latestAiReviewId]="latestAiReviewId()" (changed)="load()" />
   </section>
 
-  <section>
-    <app-document-fields-panel
-      [documents]="documents()"
-      [fields]="fields()"
-      [citingFindingCodesByFieldId]="citingFindingCodesByFieldId()"
-    />
-    <app-document-upload [caseId]="c.id!" (uploaded)="load()" />
-  </section>
+  @if (reviewerView()) {
+    <section>
+      <app-finding-comparison [fields]="selectedComparisonFields()" />
+      <app-document-fields-panel
+        [documents]="documents()"
+        [fields]="fields()"
+        [citingFindingsByFieldId]="citingFindingsByFieldId()"
+        [selectedFieldIds]="selectedFieldIds()"
+      />
+      <app-document-upload [caseId]="c.id!" (uploaded)="load()" />
+    </section>
 
-  <section>
-    <app-findings-panel [findings]="findings()" [fieldLabelsById]="fieldLabelsById()" />
-  </section>
+    <section>
+      <app-findings-panel
+        [findings]="findings()"
+        [fieldLabelsById]="fieldLabelsById()"
+        [selectedFindingId]="selectedFindingId()"
+        (selectFinding)="selectedFindingId.set($event)"
+      />
+    </section>
 
-  <section>
-    <app-ai-review-panel [aiReviews]="aiReviews()" />
-  </section>
+    <section>
+      <app-ai-review-panel [aiReviews]="aiReviews()" />
+    </section>
 
-  <section>
-    <h2>Decisions</h2>
-    @if (decisions().length === 0) {
-      <p>No decision recorded yet.</p>
-    } @else {
-      <ul class="decisions-list">
-        @for (decision of decisions(); track decision.id) {
-          <li>
-            <strong>{{ decision.outcome }}</strong>
-            by {{ decision.decidedByUserId }} on {{ decision.decidedAt | date: 'medium' }}
-          </li>
-        }
-      </ul>
-    }
-  </section>
+    <section>
+      <h2>Decisions</h2>
+      @if (decisions().length === 0) {
+        <p>No decision recorded yet.</p>
+      } @else {
+        <ul class="decisions-list">
+          @for (decision of decisions(); track decision.id) {
+            <li>
+              <strong>{{ decision.outcome }}</strong>
+              by {{ decision.decidedByUserId }} on {{ decision.decidedAt | date: 'medium' }}
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
 
-  <section>
+  @if (advisorView()) {
+    <section>
+      <app-advisor-todo-list [findings]="findings()" />
+    </section>
+
+    <section>
+      <h2>Documents</h2>
+      <app-document-upload [caseId]="c.id!" (uploaded)="load()" />
+    </section>
+
+    <section>
+      <app-draft-client-message [case]="c" [findings]="findings()" />
+    </section>
+  }
+
+  <section id="audit-timeline">
     <app-audit-timeline [events]="auditEvents()" />
   </section>
 }

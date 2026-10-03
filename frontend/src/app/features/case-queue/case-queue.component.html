@@ -14,6 +14,15 @@
       <option [value]="status">{{ status }}</option>
     }
   </select>
+
+  <label for="queue-search">Search</label>
+  <input
+    id="queue-search"
+    type="search"
+    placeholder="Client name or case ID"
+    [value]="searchQuery()"
+    (input)="searchQuery.set($any($event.target).value)"
+  />
 </div>
 
 @if (loading()) {
@@ -21,27 +30,34 @@
 } @else if (error()) {
   <app-error-banner [problem]="error()!" (retry)="load()" />
 } @else if (visibleCases().length === 0) {
-  <p>No cases match this filter.</p>
+  <p>{{ statusFilter() === 'All' && !searchQuery() ? 'No open cases.' : 'No cases match this filter.' }}</p>
 } @else {
   <table class="case-table">
-    <caption class="sr-only">Cases, newest first</caption>
+    <caption class="sr-only">Cases, cases needing your action first</caption>
     <thead>
       <tr>
         <th scope="col">Applicant</th>
         <th scope="col">Status</th>
         <th scope="col">Firm</th>
-        <th scope="col">Created</th>
+        <th scope="col">Open</th>
       </tr>
     </thead>
     <tbody>
-      @for (c of visibleCases(); track c.id) {
-        <tr>
+      @for (row of visibleCases(); track row.case.id) {
+        <tr [class.case-table__row--my-turn]="row.myTurn">
           <td>
-            <a [routerLink]="['/cases', c.id]">{{ c.applicantFullName || '(unnamed applicant)' }}</a>
+            <a [routerLink]="['/cases', row.case.id]">{{ row.case.applicantFullName || '(unnamed applicant)' }}</a>
           </td>
-          <td><app-case-status-badge [status]="c.status!" /></td>
-          <td>{{ c.firmId }}</td>
-          <td>{{ c.createdAt | date: 'medium' }}</td>
+          <td><app-plain-status-badge [status]="row.case.status!" /></td>
+          <td>{{ row.case.firmId }}</td>
+          <td>
+            {{ row.daysOpen }} {{ row.daysOpen === 1 ? 'day' : 'days' }}
+            @if (row.aging) {
+              <span class="badge badge--warning" title="Open longer than expected">
+                <span aria-hidden="true">⏳</span> aging
+              </span>
+            }
+          </td>
         </tr>
       }
     </tbody>

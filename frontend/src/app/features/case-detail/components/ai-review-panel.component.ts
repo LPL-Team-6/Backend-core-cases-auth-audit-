@@ -3,6 +3,7 @@ import { DatePipe } from '@angular/common';
 
 import { AiReviewResponse } from '@caseauth/angular-client/src/models/ai-review-response';
 import { AiRecommendation } from '@caseauth/angular-client/src/models/ai-recommendation';
+import { FALLBACK_MODEL_NAME } from '../../../core/ai-fallback';
 
 const RECOMMENDATION_BADGE: Record<AiRecommendation, string> = {
   Approve: 'badge--success',
@@ -19,12 +20,24 @@ const RECOMMENDATION_BADGE: Record<AiRecommendation, string> = {
       <p>No AI review has run yet.</p>
     } @else {
       @let latest = sorted()[0];
+
+      <!-- R4: AI content is a proposal, never a decision - the fallback banner and "AI draft"
+           label both exist so nobody mistakes this panel for a compliance determination. -->
+      @if (latest.modelName === fallbackModelName) {
+        <div class="ai-review__fallback-banner" role="status">
+          AI summary unavailable. Showing rule-based summary.
+        </div>
+      }
+
       <article class="ai-review ai-review--latest">
         <header>
           <span class="badge" [class]="badge(latest.recommendation)">{{ latest.recommendation }}</span>
           <strong>v{{ latest.version }}</strong>
           <span class="ai-review__model">{{ latest.modelName }} ({{ latest.modelVersion }})</span>
         </header>
+        <p class="ai-review__label">
+          AI draft, review before use - v{{ latest.version }}, {{ latest.createdAt | date: 'medium' }}
+        </p>
         <!-- Rationale is model output: interpolation only, never [innerHTML], so Angular's
              sanitizer is never bypassed regardless of what the model returns. -->
         <p>{{ latest.rationale }}</p>
@@ -65,6 +78,25 @@ const RECOMMENDATION_BADGE: Record<AiRecommendation, string> = {
       font-size: 0.85rem;
     }
 
+    .ai-review__label {
+      color: var(--color-text-muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      margin: 0 0 0.5rem;
+    }
+
+    .ai-review__fallback-banner {
+      background: var(--color-warning-bg);
+      color: var(--color-warning);
+      border: 1px solid var(--color-warning);
+      border-radius: var(--radius);
+      padding: 0.6rem 0.9rem;
+      margin-bottom: 0.75rem;
+      font-weight: 600;
+    }
+
     .ai-review-history {
       margin-top: 0.5rem;
       color: var(--color-text-muted);
@@ -73,6 +105,7 @@ const RECOMMENDATION_BADGE: Record<AiRecommendation, string> = {
 })
 export class AiReviewPanelComponent {
   readonly aiReviews = input.required<AiReviewResponse[]>();
+  readonly fallbackModelName = FALLBACK_MODEL_NAME;
 
   readonly sorted = computed(() => [...this.aiReviews()].sort((a, b) => (b.version ?? 0) - (a.version ?? 0)));
 
