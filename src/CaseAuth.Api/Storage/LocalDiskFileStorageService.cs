@@ -20,4 +20,16 @@ public class LocalDiskFileStorageService(IOptions<StorageOptions> options) : IFi
 
         return relativeKey.Replace(Path.DirectorySeparatorChar, '/');
     }
+
+    public Task<Stream> OpenReadAsync(string storageKey, CancellationToken ct)
+    {
+        var root = Path.GetFullPath(options.Value.LocalDiskRoot);
+        var fullPath = Path.GetFullPath(Path.Combine(root, storageKey));
+        if (!fullPath.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("Storage key resolves outside the storage root.");
+        }
+
+        return Task.FromResult<Stream>(File.OpenRead(fullPath));
+    }
 }

@@ -50,6 +50,25 @@ public class ExtractedFieldsController(CaseAuthDbContext db, ICurrentUser curren
         return fields.Select(ExtractedFieldResponse.From).ToList();
     }
 
+    // Returns one tax ID in full, and records who saw it. Fields that aren't masked have nothing
+    // to reveal and 404, so this can't be used as a general "read any field" audit bypass.
+    [HttpPost("{fieldId:guid}/reveal")]
+    public async Task<ActionResult<RevealedFieldResponse>> Reveal(Guid documentId, Guid fieldId, CancellationToken ct)
+    {
+        var document = await GetScopedDocumentAsync(documentId, ct);
+        var field = await db.ExtractedFields.FirstOrDefaultAsync(f => f.Id == fieldId && f.DocumentId == document.Id, ct);
+        if (field is null || !SensitiveFields.IsSensitive(field.FieldName))
+        {
+            throw new NotFoundApiException($"Masked field '{fieldId}' was not found on document '{documentId}'.");
+        }
+
+        audit.Record(db, document.CaseId, "ExtractedField.Revealed", AuditOutcome.Success,
+            metadata: $"{{\"documentId\":\"{document.Id}\",\"fieldId\":\"{field.Id}\",\"fieldName\":\"{field.FieldName}\"}}");
+        await db.SaveChangesAsync(ct);
+
+        return new RevealedFieldResponse(field.Id, field.FieldName, field.FieldValue);
+    }
+
     private async Task<Document> GetScopedDocumentAsync(Guid documentId, CancellationToken ct)
     {
         var document = await db.Documents

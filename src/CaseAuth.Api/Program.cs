@@ -3,6 +3,7 @@ using CaseAuth.Api.Auth;
 using CaseAuth.Api.Data;
 using CaseAuth.Api.Errors;
 using CaseAuth.Api.Infrastructure;
+using CaseAuth.Api.Demo;
 using CaseAuth.Api.Pipeline;
 using CaseAuth.Api.Screening;
 using CaseAuth.Api.Services;
@@ -62,6 +63,11 @@ builder.Services.AddScoped<IFileStorageService>(sp =>
         ? new S3FileStorageService()
         : new LocalDiskFileStorageService(options);
 });
+
+// --- Demo data -------------------------------------------------------------------------
+// POST /api/demo/reset reloads demo/personas.json; DemoController refuses outside Development.
+builder.Services.Configure<DemoOptions>(builder.Configuration.GetSection(DemoOptions.SectionName));
+builder.Services.AddScoped<IDemoSeeder, DemoSeeder>();
 
 // --- Background pipeline ---------------------------------------------------------------
 builder.Services.Configure<PipelineOptions>(builder.Configuration.GetSection(PipelineOptions.SectionName));

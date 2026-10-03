@@ -31,6 +31,8 @@ public class AiReviewsController(CaseAuthDbContext db, ICaseAccessor caseAccesso
     public async Task<ActionResult<AiReviewResponse>> Create(Guid caseId, [FromBody] CreateAiReviewRequest request, CancellationToken ct)
     {
         var c = await caseAccessor.GetScopedCaseAsync(db, caseId, ct);
+        var keyConcerns = request.KeyConcerns ?? [];
+        await AiReviewCitations.EnsureValidAsync(db, c.Id, keyConcerns, ct);
 
         var nextVersion = 1 + await db.AiReviews
             .Where(r => r.CaseId == caseId)
@@ -45,6 +47,10 @@ public class AiReviewsController(CaseAuthDbContext db, ICaseAccessor caseAccesso
             ModelVersion = request.ModelVersion,
             Recommendation = request.Recommendation,
             Rationale = request.Rationale,
+            Summary = request.Summary,
+            KeyConcerns = keyConcerns,
+            NextSteps = request.NextSteps ?? [],
+            DraftCaseNote = request.DraftCaseNote,
         };
 
         db.AiReviews.Add(review);

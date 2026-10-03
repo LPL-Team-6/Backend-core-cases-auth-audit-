@@ -1,0 +1,635 @@
+{
+  "_note": "Synthetic test personas for the demo. Every name, date, address, phone number and TIN here is invented; TINs are stored as last four only, the way the rules engine expects. The sanctions entry matched by persona 4 is a synthetic fixture entry, not a real SDN record. Findings are not listed here: the demo reset and seed.mjs run the real rules engine over these fields, and each AI review may only cite codes the engine actually raised. Every document image generated from this file is stamped SPECIMEN.",
+  "personas": [
+    {
+      "key": "clean",
+      "label": "Clean applicant, should clear",
+      "applicant": {
+        "kind": "Individual",
+        "fullName": "Maria Elena Torres",
+        "dateOfBirth": "1984-03-12",
+        "email": "m.torres@example.com",
+        "phone": "305-555-0142"
+      },
+      "documents": [
+        {
+          "key": "app",
+          "type": "Application",
+          "title": "Account Application",
+          "file": "clean_application.png",
+          "fields": [
+            {
+              "name": "FULL_NAME",
+              "value": "MARIA ELENA TORRES",
+              "confidence": 0.98
+            },
+            {
+              "name": "DATE_OF_BIRTH",
+              "value": "1984-03-12",
+              "confidence": 0.98
+            },
+            {
+              "name": "ADDRESS",
+              "value": "1450 BRICKELL BAY DR APT 2204, MIAMI, FL 33131",
+              "confidence": 0.96
+            },
+            {
+              "name": "PHONE",
+              "value": "305-555-0142",
+              "confidence": 0.97
+            },
+            {
+              "name": "COUNTRY_CODE",
+              "value": "US",
+              "confidence": 0.99
+            }
+          ]
+        },
+        {
+          "key": "id",
+          "type": "GovernmentId",
+          "title": "Driver License (Florida)",
+          "file": "clean_drivers_license.png",
+          "fields": [
+            {
+              "name": "FULL_NAME",
+              "value": "MARIA ELENA TORRES",
+              "confidence": 0.99
+            },
+            {
+              "name": "DATE_OF_BIRTH",
+              "value": "1984-03-12",
+              "confidence": 0.98
+            },
+            {
+              "name": "ADDRESS",
+              "value": "1450 BRICKELL BAY DR APT 2204, MIAMI, FL 33131",
+              "confidence": 0.96
+            },
+            {
+              "name": "DOCUMENT_NUMBER",
+              "value": "T652-118-84-312-0",
+              "confidence": 0.97
+            },
+            {
+              "name": "EXPIRY_DATE",
+              "value": "2029-03-12",
+              "confidence": 0.98
+            }
+          ]
+        },
+        {
+          "key": "w9",
+          "type": "W9",
+          "title": "Form W-9",
+          "file": "clean_w9.png",
+          "fields": [
+            {
+              "name": "FULL_NAME",
+              "value": "MARIA ELENA TORRES",
+              "confidence": 0.98
+            },
+            {
+              "name": "TIN_LAST4",
+              "value": "4320",
+              "confidence": 0.97
+            },
+            {
+              "name": "ADDRESS",
+              "value": "1450 BRICKELL BAY DR APT 2204, MIAMI, FL 33131",
+              "confidence": 0.95
+            }
+          ]
+        }
+      ],
+      "aiReview": {
+        "recommendation": "Approve",
+        "summary": "The rules engine raised no flags. Name, date of birth and address agree across the application, driver license and W-9, the ID is valid until 2029, and the sanctions screen found no candidate.",
+        "keyConcerns": [],
+        "nextSteps": [
+          "No further verification needed. Approve and open the account."
+        ],
+        "draftCaseNote": "Identity verified against the application, a Florida driver license and a W-9. All fields consistent. No sanctions candidates. Recommend approval."
+      }
+    },
+    {
+      "key": "mismatch",
+      "label": "Name and address mismatch (Smith/Smyth)",
+      "applicant": {
+        "kind": "Individual",
+        "fullName": "John Smith",
+        "dateOfBirth": "1979-11-02",
+        "email": "jsmith79@example.com",
+        "phone": "407-555-0187"
+      },
+      "documents": [
+        {
+          "key": "app",
+          "type": "Application",
+          "title": "Account Application",
+          "file": "mismatch_application.png",
+          "fields": [
+            {
+              "name": "FULL_NAME",
+              "value": "JOHN SMITH",
+              "confidence": 0.98
+            },
+            {
+              "name": "DATE_OF_BIRTH",
+              "value": "1979-11-02",
+              "confidence": 0.97
+            },
+            {
+              "name": "ADDRESS",
+              "value": "742 EVERGREEN TER, SPRINGFIELD, IL 62704",
+              "confidence": 0.96
+            },
+            {
+              "name": "PHONE",
+              "value": "407-555-0187",
+              "confidence": 0.96
+            },
+            {
+              "name": "COUNTRY_CODE",
+              "value": "US",
+              "confidence": 0.99
+            }
+          ]
+        },
+        {
+          "key": "id",
+          "type": "GovernmentId",
+          "title": "Driver License (Illinois)",
+          "file": "mismatch_drivers_license.png",
+          "fields": [
+            {
+              "name": "FULL_NAME",
+              "value": "JOHN SMITH",
+              "confidence": 0.98
+            },
+            {
+              "name": "DATE_OF_BIRTH",
+              "value": "1979-11-02",
+              "confidence": 0.97
+            },
+            {
+              "name": "ADDRESS",
+              "value": "742 EVERGREEN TER, SPRINGFIELD, IL 62704",
+              "confidence": 0.95
+            },
+            {
+              "name": "DOCUMENT_NUMBER",
+              "value": "S530-4417-9306",
+              "confidence": 0.96
+            },
+            {
+              "name": "EXPIRY_DATE",
+              "value": "2028-11-02",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "key": "w9",
+          "type": "W9",
+          "title": "Form W-9",
+          "file": "mismatch_w9.png",
+          "fields": [
+            {
+              "name": "FULL_NAME",
+              "value": "JOHN SMYTH",
+              "confidence": 0.94
+            },
+            {
+              "name": "TIN_LAST4",
+              "value": "4321",
+              "confidence": 0.96
+            },
+            {
+              "name": "ADDRESS",
+              "value": "88 LAKEVIEW RD, ORLANDO, FL 32801",
+              "confidence": 0.93
+            }
+          ]
+        }
+      ],
+      "aiReview": {
+        "recommendation": "Escalate",
+        "summary": "The W-9 spells the surname SMYTH while the application and ID say SMITH, and the W-9 gives a Florida address where the others give Illinois. The applicant's phone number also appears on another open case. Each could be innocent, but together they mean the W-9 may belong to someone else.",
+        "keyConcerns": [
+          {
+            "text": "Taxpayer name on the W-9 does not match the application or government ID.",
+            "findingCodes": [
+              "NAME_MISMATCH"
+            ]
+          },
+          {
+            "text": "Address on the W-9 (Florida) does not match the application and ID (Illinois).",
+            "findingCodes": [
+              "ADDRESS_MISMATCH"
+            ]
+          },
+          {
+            "text": "The phone number is also on an unrelated applicant's case.",
+            "findingCodes": [
+              "SHARED_PHONE"
+            ]
+          }
+        ],
+        "nextSteps": [
+          "Request a utility bill or lease showing the Florida address.",
+          "Ask the applicant to confirm the correct spelling of their surname and resubmit the W-9 if needed.",
+          "Check how this applicant is connected to the other case using the same phone number."
+        ],
+        "draftCaseNote": "W-9 taxpayer name (John Smyth) and address (Orlando, FL) differ from the application and Illinois driver license (John Smith, Springfield, IL). Phone number is shared with another applicant. Requested proof of the Florida address and a corrected W-9 before approval."
+      }
+    },
+    {
+      "key": "expired",
+      "label": "Expired ID",
+      "applicant": {
+        "kind": "Individual",
+        "fullName": "Aisha Rahman",
+        "dateOfBirth": "1991-07-24",
+        "email": "aisha.rahman@example.com",
+        "phone": "214-555-0119"
+      },
+      "documents": [
+        {
+          "key": "app",
+          "type": "Application",
+          "title": "Account Application",
+          "file": "expired_application.png",
+          "fields": [
+            {
+              "name": "FULL_NAME",
+              "value": "AISHA RAHMAN",
+              "confidence": 0.98
+            },
+            {
+              "name": "DATE_OF_BIRTH",
+              "value": "1991-07-24",
+              "confidence": 0.97
+            },
+            {
+              "name": "ADDRESS",
+              "value": "3100 MCKINNON ST APT 1208, DALLAS, TX 75201",
+              "confidence": 0.96
+            },
+            {
+              "name": "PHONE",
+              "value": "214-555-0119",
+              "confidence": 0.97
+            },
+            {
+              "name": "COUNTRY_CODE",
+              "value": "US",
+              "confidence": 0.99
+            }
+          ]
+        },
+        {
+          "key": "id",
+          "type": "GovernmentId",
+          "title": "Passport",
+          "file": "expired_passport.png",
+          "fields": [
+            {
+              "name": "FULL_NAME",
+              "value": "AISHA RAHMAN",
+              "confidence": 0.97
+            },
+            {
+              "name": "DATE_OF_BIRTH",
+              "value": "1991-07-24",
+              "confidence": 0.58
+            },
+            {
+              "name": "DOCUMENT_NUMBER",
+              "value": "X48210937",
+              "confidence": 0.95
+            },
+            {
+              "name": "EXPIRY_DATE",
+              "value": "2024-06-30",
+              "confidence": 0.96
+            }
+          ]
+        },
+        {
+          "key": "w9",
+          "type": "W9",
+          "title": "Form W-9",
+          "file": "expired_w9.png",
+          "fields": [
+            {
+              "name": "FULL_NAME",
+              "value": "AISHA RAHMAN",
+              "confidence": 0.98
+            },
+            {
+              "name": "TIN_LAST4",
+              "value": "4322",
+              "confidence": 0.97
+            },
+            {
+              "name": "ADDRESS",
+              "value": "3100 MCKINNON ST APT 1208, DALLAS, TX 75201",
+              "confidence": 0.95
+            }
+          ]
+        }
+      ],
+      "aiReview": {
+        "recommendation": "Escalate",
+        "summary": "The only government ID provided is a passport that expired in June 2024, so identity cannot be verified yet. The date of birth on the passport was also hard to read, so the ID has no usable date of birth to check against the application.",
+        "keyConcerns": [
+          {
+            "text": "Government ID is expired.",
+            "findingCodes": [
+              "DOCUMENT_EXPIRED"
+            ]
+          },
+          {
+            "text": "Date of birth on the passport was extracted with low confidence and is unconfirmed.",
+            "findingCodes": [
+              "LOW_EXTRACTION_CONFIDENCE",
+              "MISSING_REQUIRED_FIELD"
+            ]
+          }
+        ],
+        "nextSteps": [
+          "Request a current, unexpired government ID.",
+          "Confirm the date of birth by eye against the passport image."
+        ],
+        "draftCaseNote": "Applicant supplied a passport that expired 2024-06-30. Requested a current government-issued ID. Date of birth on the passport pending manual confirmation."
+      }
+    },
+    {
+      "key": "sanctions",
+      "label": "Near-match against the sanctions list",
+      "applicant": {
+        "kind": "Individual",
+        "fullName": "Ruslan Tarkhovsky",
+        "dateOfBirth": "1972-01-15",
+        "email": "r.tarkhovsky@example.com",
+        "phone": "646-555-0163"
+      },
+      "documents": [
+        {
+          "key": "app",
+          "type": "Application",
+          "title": "Account Application",
+          "file": "sanctions_application.png",
+          "fields": [
+            {
+              "name": "FULL_NAME",
+              "value": "RUSLAN TARKHOVSKY",
+              "confidence": 0.98
+            },
+            {
+              "name": "DATE_OF_BIRTH",
+              "value": "1972-01-15",
+              "confidence": 0.97
+            },
+            {
+              "name": "ADDRESS",
+              "value": "200 E 57TH ST APT 31C, NEW YORK, NY 10022",
+              "confidence": 0.96
+            },
+            {
+              "name": "PHONE",
+              "value": "646-555-0163",
+              "confidence": 0.97
+            },
+            {
+              "name": "COUNTRY_CODE",
+              "value": "CY",
+              "confidence": 0.98
+            }
+          ]
+        },
+        {
+          "key": "id",
+          "type": "GovernmentId",
+          "title": "Passport",
+          "file": "sanctions_passport.png",
+          "fields": [
+            {
+              "name": "FULL_NAME",
+              "value": "RUSLAN TARKHOVSKY",
+              "confidence": 0.98
+            },
+            {
+              "name": "DATE_OF_BIRTH",
+              "value": "1972-01-15",
+              "confidence": 0.97
+            },
+            {
+              "name": "NATIONALITY",
+              "value": "CYPRUS",
+              "confidence": 0.96
+            },
+            {
+              "name": "DOCUMENT_NUMBER",
+              "value": "K0938214",
+              "confidence": 0.96
+            },
+            {
+              "name": "EXPIRY_DATE",
+              "value": "2030-09-01",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "key": "w9",
+          "type": "W9",
+          "title": "Form W-9",
+          "file": "sanctions_w9.png",
+          "fields": [
+            {
+              "name": "FULL_NAME",
+              "value": "RUSLAN TARKHOVSKY",
+              "confidence": 0.97
+            },
+            {
+              "name": "TIN_LAST4",
+              "value": "4323",
+              "confidence": 0.96
+            },
+            {
+              "name": "ADDRESS",
+              "value": "200 E 57TH ST APT 31C, NEW YORK, NY 10022",
+              "confidence": 0.95
+            }
+          ]
+        }
+      ],
+      "aiReview": {
+        "recommendation": "Escalate",
+        "summary": "The name is a close fuzzy match to an entry on the (synthetic) sanctions list, spelled TARKHOVSKIY there. A name match alone should not decide this case either way: date of birth, nationality and place of birth have to be compared against the entry first.",
+        "keyConcerns": [
+          {
+            "text": "Possible sanctions list match on name.",
+            "findingCodes": [
+              "OFAC_POTENTIAL_MATCH"
+            ]
+          }
+        ],
+        "nextSteps": [
+          "Compare full date of birth, nationality and place of birth against the list entry.",
+          "Hold the account and route to the sanctions officer. Do not tip off the applicant."
+        ],
+        "draftCaseNote": "Potential sanctions name match against list entry TARKHOVSKIY. Routed to the sanctions officer for disposition before any account activity."
+      }
+    },
+    {
+      "key": "shell",
+      "label": "Shell company with unclear beneficial ownership",
+      "applicant": {
+        "kind": "Entity",
+        "fullName": "Bluewater Meridian Holdings LLC",
+        "email": "admin@bluewater-meridian.example.com",
+        "phone": "407-555-0187"
+      },
+      "documents": [
+        {
+          "key": "app",
+          "type": "Application",
+          "title": "Entity Account Application",
+          "file": "shell_account_application.png",
+          "fields": [
+            {
+              "name": "FULL_NAME",
+              "value": "BLUEWATER MERIDIAN HOLDINGS LLC",
+              "confidence": 0.97
+            },
+            {
+              "name": "ADDRESS",
+              "value": "PO BOX 4471, ORLANDO, FL 32802",
+              "confidence": 0.94
+            },
+            {
+              "name": "PHONE",
+              "value": "407-555-0187",
+              "confidence": 0.93
+            },
+            {
+              "name": "AUTHORIZED_SIGNER",
+              "value": "D. KELLER",
+              "confidence": 0.71
+            },
+            {
+              "name": "COUNTRY_CODE",
+              "value": "US",
+              "confidence": 0.99
+            }
+          ]
+        },
+        {
+          "key": "formation",
+          "type": "FormationDocument",
+          "title": "Certificate of Formation",
+          "file": "shell_formation.png",
+          "fields": [
+            {
+              "name": "FULL_NAME",
+              "value": "BLUEWATER MERIDIAN HOLDINGS LLC",
+              "confidence": 0.96
+            },
+            {
+              "name": "ADDRESS",
+              "value": "100 REGISTERED AGENT WAY STE 5, DOVER, DE 19901",
+              "confidence": 0.95
+            },
+            {
+              "name": "STATE_OF_FORMATION",
+              "value": "DELAWARE",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "key": "bo",
+          "type": "BeneficialOwnership",
+          "title": "Beneficial Ownership Certification",
+          "file": "shell_beneficial_ownership.png",
+          "fields": [
+            {
+              "name": "OWNER_1",
+              "value": "HARBOR NOMINEE SERVICES LTD (BRITISH VIRGIN ISLANDS) - 60%",
+              "confidence": 0.9
+            },
+            {
+              "name": "OWNER_2",
+              "value": "NOT PROVIDED - 40%",
+              "confidence": 0.88
+            },
+            {
+              "name": "CONTROL_PERSON",
+              "value": "D. KELLER",
+              "confidence": 0.7
+            }
+          ]
+        },
+        {
+          "key": "w9",
+          "type": "W9",
+          "title": "Form W-9",
+          "file": "shell_w9.png",
+          "fields": [
+            {
+              "name": "FULL_NAME",
+              "value": "BLUEWATER MERIDIAN HOLDINGS LLC",
+              "confidence": 0.96
+            },
+            {
+              "name": "TIN_LAST4",
+              "value": "4324",
+              "confidence": 0.95
+            },
+            {
+              "name": "ADDRESS",
+              "value": "PO BOX 4471, ORLANDO, FL 32802",
+              "confidence": 0.94
+            }
+          ]
+        }
+      ],
+      "aiReview": {
+        "recommendation": "Reject",
+        "summary": "No real person is identified as an owner: the certification lists a nominee company for 60% and nothing for the other 40%. The mailing address is a PO box, the registered address is a registered agent's office, and the phone number is shared with another applicant. This is the profile of a shell entity.",
+        "keyConcerns": [
+          {
+            "text": "No beneficial owner is identified by name.",
+            "findingCodes": [
+              "MISSING_BENEFICIAL_OWNER",
+              "MISSING_REQUIRED_FIELD"
+            ]
+          },
+          {
+            "text": "The only addresses are a PO box and a registered agent's office.",
+            "findingCodes": [
+              "PO_BOX_ADDRESS",
+              "REGISTERED_AGENT_ADDRESS",
+              "ADDRESS_MISMATCH"
+            ]
+          },
+          {
+            "text": "Contact details are reused by an unrelated applicant.",
+            "findingCodes": [
+              "SHARED_PHONE"
+            ]
+          }
+        ],
+        "nextSteps": [
+          "Request identification for every natural person owning 25% or more, and for the control person.",
+          "Ask for a physical business address and verify it.",
+          "Review the linked applicant who shares this phone number."
+        ],
+        "draftCaseNote": "Entity applicant with nominee ownership (BVI) and an undisclosed 40% owner. Only addresses on file are a PO box and a registered agent's office, and the phone number is shared with another applicant. Recommend declining unless full beneficial ownership is documented."
+      }
+    }
+  ]
+}

@@ -177,6 +177,9 @@ public class PipelineJobProcessor(
             .Select(r => (int?)r.Version)
             .MaxAsync(ct) ?? 1;
 
+        var keyConcerns = result.KeyConcerns ?? [];
+        await AiReviewCitations.EnsureValidAsync(db, job.CaseId, keyConcerns, ct);
+
         db.AiReviews.Add(new AiReview
         {
             CaseId = job.CaseId,
@@ -185,6 +188,10 @@ public class PipelineJobProcessor(
             ModelVersion = result.ModelVersion,
             Recommendation = result.Recommendation,
             Rationale = result.Rationale,
+            Summary = result.Summary,
+            KeyConcerns = keyConcerns,
+            NextSteps = result.NextSteps ?? [],
+            DraftCaseNote = result.DraftCaseNote,
         });
 
         // Satisfies the same "at least one AI review must exist" precondition CasesController

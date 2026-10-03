@@ -204,6 +204,105 @@
         }
       }
     },
+    "/api/cases/{caseId}/case-note": {
+      "get": {
+        "tags": [
+          "CaseNotes"
+        ],
+        "operationId": "CaseNotes_Get",
+        "parameters": [
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseNoteResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseNoteResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseNoteResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "CaseNotes"
+        ],
+        "operationId": "CaseNotes_Save",
+        "parameters": [
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveCaseNoteRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveCaseNoteRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveCaseNoteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseNoteResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseNoteResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseNoteResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/cases": {
       "post": {
         "tags": [
@@ -658,6 +757,36 @@
         }
       }
     },
+    "/api/demo/reset": {
+      "post": {
+        "tags": [
+          "Demo"
+        ],
+        "operationId": "Demo_Reset",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoResetResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoResetResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoResetResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/cases/{caseId}/documents": {
       "get": {
         "tags": [
@@ -773,6 +902,39 @@
         }
       }
     },
+    "/api/cases/{caseId}/documents/{documentId}/content": {
+      "get": {
+        "tags": [
+          "Documents"
+        ],
+        "operationId": "Documents_Content",
+        "parameters": [
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/documents/{documentId}/extracted-fields": {
       "get": {
         "tags": [
@@ -883,6 +1045,56 @@
                   "items": {
                     "$ref": "#/components/schemas/ExtractedFieldResponse"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/documents/{documentId}/extracted-fields/{fieldId}/reveal": {
+      "post": {
+        "tags": [
+          "ExtractedFields"
+        ],
+        "operationId": "ExtractedFields_Reveal",
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "fieldId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevealedFieldResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevealedFieldResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevealedFieldResponse"
                 }
               }
             }
@@ -1143,10 +1355,57 @@
           }
         }
       }
+    },
+    "/api/upload-limits": {
+      "get": {
+        "tags": [
+          "UploadLimits"
+        ],
+        "operationId": "UploadLimits_Get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadLimitsResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadLimitsResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadLimitsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "AiConcern": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "nullable": true
+          },
+          "findingCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "AiRecommendation": {
         "enum": [
           "Approve",
@@ -1176,6 +1435,9 @@
           "fieldValue": {
             "type": "string",
             "nullable": true
+          },
+          "isMasked": {
+            "type": "boolean"
           },
           "confidence": {
             "type": "number",
@@ -1269,6 +1531,28 @@
             "type": "string",
             "nullable": true
           },
+          "summary": {
+            "type": "string",
+            "nullable": true
+          },
+          "keyConcerns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiConcern"
+            },
+            "nullable": true
+          },
+          "nextSteps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "draftCaseNote": {
+            "type": "string",
+            "nullable": true
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -1330,6 +1614,37 @@
         ],
         "type": "string"
       },
+      "CaseNoteResponse": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "nullable": true
+          },
+          "source": {
+            "type": "string",
+            "nullable": true
+          },
+          "basedOnAiReviewVersion": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "updatedByUserId": {
+            "type": "string",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "locked": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
       "CaseResponse": {
         "type": "object",
         "properties": {
@@ -1363,6 +1678,13 @@
           "rowVersion": {
             "type": "string",
             "format": "uuid"
+          },
+          "riskScore": {
+            "type": "number",
+            "format": "double"
+          },
+          "riskTier": {
+            "$ref": "#/components/schemas/FindingSeverity"
           }
         },
         "additionalProperties": false
@@ -1395,6 +1717,28 @@
             "$ref": "#/components/schemas/AiRecommendation"
           },
           "rationale": {
+            "type": "string",
+            "nullable": true
+          },
+          "summary": {
+            "type": "string",
+            "nullable": true
+          },
+          "keyConcerns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiConcern"
+            },
+            "nullable": true
+          },
+          "nextSteps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "draftCaseNote": {
             "type": "string",
             "nullable": true
           }
@@ -1525,6 +1869,16 @@
         },
         "additionalProperties": false
       },
+      "DemoResetResponse": {
+        "type": "object",
+        "properties": {
+          "casesCreated": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
       "DocumentResponse": {
         "type": "object",
         "properties": {
@@ -1613,6 +1967,9 @@
           "fieldValue": {
             "type": "string",
             "nullable": true
+          },
+          "isMasked": {
+            "type": "boolean"
           },
           "confidence": {
             "type": "number",
@@ -1767,6 +2124,56 @@
           "AiReview"
         ],
         "type": "string"
+      },
+      "RevealedFieldResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fieldName": {
+            "type": "string",
+            "nullable": true
+          },
+          "fieldValue": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SaveCaseNoteRequest": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "nullable": true
+          },
+          "basedOnAiReviewVersion": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "UploadLimitsResponse": {
+        "type": "object",
+        "properties": {
+          "maxUploadBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "allowedContentTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
       }
     },
     "securitySchemes": {

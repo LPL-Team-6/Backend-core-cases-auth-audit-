@@ -84,11 +84,12 @@ rule and pipeline coverage.
 Not done yet: a real OFAC SDN snapshot, the extraction and live AI
 implementations, a real S3 storage backend (`Storage:Mode=S3` intentionally
 throws `NotImplementedException` for now), and wiring the frontend's manual
-processing buttons to the background pipeline. `AiReview`'s shape
-(`modelName`/`modelVersion`/`recommendation`/`rationale`) is also simpler than
-Teammate 4's planned output (`summary`, `key_concerns[]` citing finding IDs,
-`recommended_next_steps[]`, `draft_case_note`, derived confidence) - expect that
-entity/contract to grow when the AI review module is built.
+processing buttons to the background pipeline. `AiReview` now carries Teammate
+4's planned output as optional fields (`summary`, `keyConcerns[]` each citing
+finding codes, `nextSteps[]`, `draftCaseNote`); derived confidence is still to
+come. A review whose concern cites a finding code the case doesn't have is
+rejected with a 400, so the reviewer can explain the rules engine's findings but
+not invent new ones.
 
 The `Dockerfile` builds and runs correctly, but **the container won't start at
 all without `ASPNETCORE_ENVIRONMENT=Development` set explicitly** - it defaults
@@ -129,6 +130,32 @@ If the AI Review Agent isn't running, the job fails with a connection error
 (visible in the job's `error` field) rather than silently degrading - set
 `AiReviewAgent:Mode=Deterministic` (or the `AiReviewAgent__Mode` env var) to
 demo without it.
+
+## Demo dashboard and test data
+
+`dashboard/` is the compliance review UI (case queue by risk, case detail with document
+images, findings, AI review, decision buttons and audit trail). `demo/` holds five synthetic
+applicant personas and a script that loads them into a running API. See
+`dashboard/README.md` and `demo/README.md`.
+
+Cases carry a server-computed `riskScore` and `riskTier` (Low/Medium/High), so any client can
+sort a queue by risk. The score is the rules engine's own weighted score for the case's findings
+(each rule's weight times its risk; Medium from 20, High from 50 by default), so the queue and the
+engine never disagree. In Development a
+supervisor can `POST /api/demo/reset` to replace their firm's cases with the demo personas.
+
+Review workspace endpoints:
+
+- `GET/PUT /api/cases/{caseId}/case-note`: the analyst's case note. GET returns the latest AI
+  draft until someone saves. PUT is safe to call on every autosave (unchanged text is a no-op),
+  doesn't change the case's RowVersion, and is refused with a 409 once the case is approved or
+  rejected.
+- Extracted tax IDs (`TIN`, `SSN`, `EIN`, `ITIN`) come back masked to the last four
+  (`isMasked: true`), including in the AI review input.
+  `POST /api/documents/{documentId}/extracted-fields/{fieldId}/reveal` returns one in full and
+  writes an `ExtractedField.Revealed` audit event.
+- `GET /api/upload-limits` returns the `Storage` max size and allowed content types, so clients
+  don't hard-code them.
 
 ## Running locally
 

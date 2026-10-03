@@ -7,4 +7,5 @@ export interface ExtractedFieldResponse {
   fieldName?: string | null;
   fieldValue?: string | null;
   id?: string;
+  isMasked?: boolean;
 }

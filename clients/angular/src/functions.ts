@@ -17,6 +17,14 @@ export type { AuditEventsList$Plain$Params as AuditEventsList$Plain$Params } fro
 export { auditEventsList$Plain as auditEventsList$Plain } from './fn/audit-events/audit-events-list-plain';
 export type { AuditEventsList$Json$Params as AuditEventsList$Json$Params } from './fn/audit-events/audit-events-list-json';
 export { auditEventsList$Json as auditEventsList$Json } from './fn/audit-events/audit-events-list-json';
+export type { CaseNotesGet$Plain$Params as CaseNotesGet$Plain$Params } from './fn/case-notes/case-notes-get-plain';
+export { caseNotesGet$Plain as caseNotesGet$Plain } from './fn/case-notes/case-notes-get-plain';
+export type { CaseNotesGet$Json$Params as CaseNotesGet$Json$Params } from './fn/case-notes/case-notes-get-json';
+export { caseNotesGet$Json as caseNotesGet$Json } from './fn/case-notes/case-notes-get-json';
+export type { CaseNotesSave$Plain$Params as CaseNotesSave$Plain$Params } from './fn/case-notes/case-notes-save-plain';
+export { caseNotesSave$Plain as caseNotesSave$Plain } from './fn/case-notes/case-notes-save-plain';
+export type { CaseNotesSave$Json$Params as CaseNotesSave$Json$Params } from './fn/case-notes/case-notes-save-json';
+export { caseNotesSave$Json as caseNotesSave$Json } from './fn/case-notes/case-notes-save-json';
 export type { CasesList$Plain$Params as CasesList$Plain$Params } from './fn/cases/cases-list-plain';
 export { casesList$Plain as casesList$Plain } from './fn/cases/cases-list-plain';
 export type { CasesList$Json$Params as CasesList$Json$Params } from './fn/cases/cases-list-json';
@@ -57,6 +65,10 @@ export type { DecisionsCreate$Plain$Params as DecisionsCreate$Plain$Params } fro
 export { decisionsCreate$Plain as decisionsCreate$Plain } from './fn/decisions/decisions-create-plain';
 export type { DecisionsCreate$Json$Params as DecisionsCreate$Json$Params } from './fn/decisions/decisions-create-json';
 export { decisionsCreate$Json as decisionsCreate$Json } from './fn/decisions/decisions-create-json';
+export type { DemoReset$Plain$Params as DemoReset$Plain$Params } from './fn/demo/demo-reset-plain';
+export { demoReset$Plain as demoReset$Plain } from './fn/demo/demo-reset-plain';
+export type { DemoReset$Json$Params as DemoReset$Json$Params } from './fn/demo/demo-reset-json';
+export { demoReset$Json as demoReset$Json } from './fn/demo/demo-reset-json';
 export type { DocumentsList$Plain$Params as DocumentsList$Plain$Params } from './fn/documents/documents-list-plain';
 export { documentsList$Plain as documentsList$Plain } from './fn/documents/documents-list-plain';
 export type { DocumentsList$Json$Params as DocumentsList$Json$Params } from './fn/documents/documents-list-json';
@@ -65,6 +77,8 @@ export type { DocumentsUpload$Plain$Params as DocumentsUpload$Plain$Params } fro
 export { documentsUpload$Plain as documentsUpload$Plain } from './fn/documents/documents-upload-plain';
 export type { DocumentsUpload$Json$Params as DocumentsUpload$Json$Params } from './fn/documents/documents-upload-json';
 export { documentsUpload$Json as documentsUpload$Json } from './fn/documents/documents-upload-json';
+export type { DocumentsContent$Params as DocumentsContent$Params } from './fn/documents/documents-content';
+export { documentsContent as documentsContent } from './fn/documents/documents-content';
 export type { ExtractedFieldsList$Plain$Params as ExtractedFieldsList$Plain$Params } from './fn/extracted-fields/extracted-fields-list-plain';
 export { extractedFieldsList$Plain as extractedFieldsList$Plain } from './fn/extracted-fields/extracted-fields-list-plain';
 export type { ExtractedFieldsList$Json$Params as ExtractedFieldsList$Json$Params } from './fn/extracted-fields/extracted-fields-list-json';
@@ -73,6 +87,10 @@ export type { ExtractedFieldsCreate$Plain$Params as ExtractedFieldsCreate$Plain$
 export { extractedFieldsCreate$Plain as extractedFieldsCreate$Plain } from './fn/extracted-fields/extracted-fields-create-plain';
 export type { ExtractedFieldsCreate$Json$Params as ExtractedFieldsCreate$Json$Params } from './fn/extracted-fields/extracted-fields-create-json';
 export { extractedFieldsCreate$Json as extractedFieldsCreate$Json } from './fn/extracted-fields/extracted-fields-create-json';
+export type { ExtractedFieldsReveal$Plain$Params as ExtractedFieldsReveal$Plain$Params } from './fn/extracted-fields/extracted-fields-reveal-plain';
+export { extractedFieldsReveal$Plain as extractedFieldsReveal$Plain } from './fn/extracted-fields/extracted-fields-reveal-plain';
+export type { ExtractedFieldsReveal$Json$Params as ExtractedFieldsReveal$Json$Params } from './fn/extracted-fields/extracted-fields-reveal-json';
+export { extractedFieldsReveal$Json as extractedFieldsReveal$Json } from './fn/extracted-fields/extracted-fields-reveal-json';
 export type { FindingsList$Plain$Params as FindingsList$Plain$Params } from './fn/findings/findings-list-plain';
 export { findingsList$Plain as findingsList$Plain } from './fn/findings/findings-list-plain';
 export type { FindingsList$Json$Params as FindingsList$Json$Params } from './fn/findings/findings-list-json';
@@ -93,3 +111,7 @@ export type { PipelineJobsEnqueue$Plain$Params as PipelineJobsEnqueue$Plain$Para
 export { pipelineJobsEnqueue$Plain as pipelineJobsEnqueue$Plain } from './fn/pipeline-jobs/pipeline-jobs-enqueue-plain';
 export type { PipelineJobsEnqueue$Json$Params as PipelineJobsEnqueue$Json$Params } from './fn/pipeline-jobs/pipeline-jobs-enqueue-json';
 export { pipelineJobsEnqueue$Json as pipelineJobsEnqueue$Json } from './fn/pipeline-jobs/pipeline-jobs-enqueue-json';
+export type { UploadLimitsGet$Plain$Params as UploadLimitsGet$Plain$Params } from './fn/upload-limits/upload-limits-get-plain';
+export { uploadLimitsGet$Plain as uploadLimitsGet$Plain } from './fn/upload-limits/upload-limits-get-plain';
+export type { UploadLimitsGet$Json$Params as UploadLimitsGet$Json$Params } from './fn/upload-limits/upload-limits-get-json';
+export { uploadLimitsGet$Json as uploadLimitsGet$Json } from './fn/upload-limits/upload-limits-get-json';

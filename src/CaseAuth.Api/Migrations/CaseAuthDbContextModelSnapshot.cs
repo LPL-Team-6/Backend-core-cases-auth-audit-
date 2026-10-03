@@ -29,11 +29,22 @@ namespace CaseAuth.Api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("DraftCaseNote")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("KeyConcerns")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("ModelName")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ModelVersion")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NextSteps")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -43,6 +54,9 @@ namespace CaseAuth.Api.Migrations
 
                     b.Property<string>("Recommendation")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Summary")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Version")
@@ -180,6 +194,30 @@ namespace CaseAuth.Api.Migrations
                     b.HasIndex("FirmId");
 
                     b.ToTable("Cases");
+                });
+
+            modelBuilder.Entity("CaseAuth.Api.Entities.CaseNote", b =>
+                {
+                    b.Property<Guid>("CaseId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("BasedOnAiReviewVersion")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("CaseId");
+
+                    b.ToTable("CaseNotes");
                 });
 
             modelBuilder.Entity("CaseAuth.Api.Entities.Decision", b =>
@@ -415,6 +453,17 @@ namespace CaseAuth.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Applicant");
+                });
+
+            modelBuilder.Entity("CaseAuth.Api.Entities.CaseNote", b =>
+                {
+                    b.HasOne("CaseAuth.Api.Entities.Case", "Case")
+                        .WithOne()
+                        .HasForeignKey("CaseAuth.Api.Entities.CaseNote", "CaseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Case");
                 });
 
             modelBuilder.Entity("CaseAuth.Api.Entities.Decision", b =>

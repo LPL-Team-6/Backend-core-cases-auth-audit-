@@ -1,3 +1,6 @@
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using CaseAuth.Api.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +15,7 @@ public class CaseAuthDbContext(DbContextOptions<CaseAuthDbContext> options) : Db
     public DbSet<Finding> Findings => Set<Finding>();
     public DbSet<AiReview> AiReviews => Set<AiReview>();
     public DbSet<Decision> Decisions => Set<Decision>();
+    public DbSet<CaseNote> CaseNotes => Set<CaseNote>();
     public DbSet<AuditEvent> AuditEvents => Set<AuditEvent>();
     public DbSet<ProcessingJob> ProcessingJobs => Set<ProcessingJob>();
 
@@ -60,6 +64,16 @@ public class CaseAuthDbContext(DbContextOptions<CaseAuthDbContext> options) : Db
             b.Property(r => r.Recommendation).HasConversion<string>();
             b.HasOne(r => r.Case).WithMany(c => c.AiReviews).HasForeignKey(r => r.CaseId);
             b.HasIndex(r => new { r.CaseId, r.Version }).IsUnique();
+            // Stored as JSON text rather than EF's provider-specific collection mapping, so the
+            // one migration set keeps working on both SQLite and Postgres.
+            b.Property(r => r.KeyConcerns).HasConversion(JsonColumn<List<AiConcern>>(), JsonComparer<List<AiConcern>>());
+            b.Property(r => r.NextSteps).HasConversion(JsonColumn<List<string>>(), JsonComparer<List<string>>());
+        });
+
+        modelBuilder.Entity<CaseNote>(b =>
+        {
+            b.HasKey(n => n.CaseId);
+            b.HasOne(n => n.Case).WithOne().HasForeignKey<CaseNote>(n => n.CaseId).OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Decision>(b =>
@@ -91,6 +105,17 @@ public class CaseAuthDbContext(DbContextOptions<CaseAuthDbContext> options) : Db
                 .HasFilter("\"IdempotencyKey\" IS NOT NULL");
         });
     }
+
+    private static readonly JsonSerializerOptions JsonColumnOptions = new(JsonSerializerDefaults.Web);
+
+    private static ValueConverter<T, string> JsonColumn<T>() where T : new() => new(
+        v => JsonSerializer.Serialize(v, JsonColumnOptions),
+        v => string.IsNullOrEmpty(v) ? new T() : JsonSerializer.Deserialize<T>(v, JsonColumnOptions) ?? new T());
+
+    private static ValueComparer<T> JsonComparer<T>() where T : new() => new(
+        (a, b) => JsonSerializer.Serialize(a, JsonColumnOptions) == JsonSerializer.Serialize(b, JsonColumnOptions),
+        v => JsonSerializer.Serialize(v, JsonColumnOptions).GetHashCode(),
+        v => JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(v, JsonColumnOptions), JsonColumnOptions) ?? new T());
 
     // RowVersion is an app-managed concurrency token (see Entities/Case.cs); regenerate it here
     // so SaveChanges always issues an UPDATE whose WHERE clause pins the value this context

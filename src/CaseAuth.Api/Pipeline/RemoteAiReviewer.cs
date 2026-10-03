@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using CaseAuth.Api.Data;
 using CaseAuth.Api.Entities;
+using CaseAuth.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace CaseAuth.Api.Pipeline;
@@ -10,16 +11,15 @@ namespace CaseAuth.Api.Pipeline;
 // own solution, tests, and eval harness, so this stays a network seam the same way
 // IFileStorageService's S3 mode would be - not a merge of the two solutions.
 //
-// AiReview (this repo's entity) only has ModelName/ModelVersion/Recommendation/Rationale - far
-// thinner than AiReviewAgentRecord's summary/key_concerns/recommended_next_steps/draft_case_note
-// plus computed confidence (see README: "expect that entity/contract to grow"). Until AiReview
-// grows those columns, Rationale carries a flattened version of the richer output so none of it
-// is silently dropped.
+// The agent's summary, key concerns, next steps and draft case note map onto AiReview's structured
+// fields. Concerns cite finding ids on the wire and finding codes here; PipelineJobProcessor then
+// rejects any citation of a code the case doesn't have. Rationale keeps a flattened copy, plus the
+// confidence band, for clients that only read Rationale.
 public class RemoteAiReviewer(HttpClient httpClient, CaseAuthDbContext db, ILogger<RemoteAiReviewer> logger) : IAiReviewer
 {
     public async Task<AiReviewResult> ReviewAsync(Guid caseId, CancellationToken ct)
     {
-        var request = await BuildRequestAsync(caseId, ct);
+        var (request, codesByFindingId) = await BuildRequestAsync(caseId, ct);
 
         logger.LogInformation(
             "Calling AI Review Agent for case {CaseId}: {DocumentCount} documents, {FindingCount} findings",
@@ -38,10 +38,19 @@ public class RemoteAiReviewer(HttpClient httpClient, CaseAuthDbContext db, ILogg
             // (AiReview.Contracts.Output.ReviewOutput) - so Escalate is the only honest mapping
             // here. The analyst makes the real call through the separate /decisions endpoint.
             Recommendation: AiRecommendation.Escalate,
-            Rationale: BuildRationale(record));
+            Rationale: BuildRationale(record),
+            Summary: record.Output.Summary,
+            KeyConcerns: record.Output.KeyConcerns
+                .Select(c => new AiConcern(c.Concern, c.CitedFindingIds
+                    .Select(id => codesByFindingId.TryGetValue(id, out var code) ? code : id)
+                    .Distinct()
+                    .ToList()))
+                .ToList(),
+            NextSteps: record.Output.RecommendedNextSteps.ToList(),
+            DraftCaseNote: record.Output.DraftCaseNote);
     }
 
-    private async Task<AiReviewAgentRequest> BuildRequestAsync(Guid caseId, CancellationToken ct)
+    private async Task<(AiReviewAgentRequest Request, Dictionary<string, string> CodesByFindingId)> BuildRequestAsync(Guid caseId, CancellationToken ct)
     {
         var fields = await db.ExtractedFields
             .Where(f => f.Document!.CaseId == caseId)
@@ -65,7 +74,8 @@ public class RemoteAiReviewer(HttpClient httpClient, CaseAuthDbContext db, ILogg
                     .Select(f => new AiReviewAgentField(
                         FieldId: fieldIdsById[f.Id],
                         Name: f.FieldName,
-                        Value: f.FieldValue,
+                        // Tax IDs leave this service as last four only - see Services/SensitiveFields.
+                        Value: SensitiveFields.Mask(f.FieldName, f.FieldValue),
                         // Textract confidence is 0-100; this repo stores it as 0.0-1.0 (ExtractedField.Confidence).
                         TextractConfidence: (f.Confidence ?? 0) * 100))
                     .ToList();
@@ -89,7 +99,8 @@ public class RemoteAiReviewer(HttpClient httpClient, CaseAuthDbContext db, ILogg
                 FieldIds: f.SourceFieldIds.Select(id => fieldIdsById[id]).ToList()))
             .ToList();
 
-        return new AiReviewAgentRequest(caseId.ToString(), documents, agentFindings);
+        var codesByFindingId = findings.ToDictionary(f => f.Id.ToString(), f => f.Code);
+        return (new AiReviewAgentRequest(caseId.ToString(), documents, agentFindings), codesByFindingId);
     }
 
     private static string BuildRationale(AiReviewAgentRecord record)

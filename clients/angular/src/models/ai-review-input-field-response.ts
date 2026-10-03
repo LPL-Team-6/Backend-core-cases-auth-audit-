@@ -9,4 +9,5 @@ export interface AiReviewInputFieldResponse {
   fieldName?: string | null;
   fieldValue?: string | null;
   id?: string;
+  isMasked?: boolean;
 }

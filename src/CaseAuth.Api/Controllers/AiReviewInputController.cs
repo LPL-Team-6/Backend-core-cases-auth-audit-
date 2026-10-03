@@ -20,11 +20,14 @@ public class AiReviewInputController(CaseAuthDbContext db, ICaseAccessor caseAcc
     {
         await caseAccessor.GetScopedCaseAsync(db, caseId, ct);
 
-        var fields = await db.ExtractedFields
+        var fields = (await db.ExtractedFields
             .Where(f => f.Document!.CaseId == caseId)
             .Select(f => new AiReviewInputFieldResponse(
-                f.Id, f.DocumentId, f.Document!.DocumentType, f.FieldName, f.FieldValue, f.Confidence))
-            .ToListAsync(ct);
+                f.Id, f.DocumentId, f.Document!.DocumentType, f.FieldName, f.FieldValue, false, f.Confidence))
+            .ToListAsync(ct))
+            // Tax IDs go to the reviewer as last four only - see Services/SensitiveFields.
+            .Select(f => f with { FieldValue = SensitiveFields.Mask(f.FieldName, f.FieldValue), IsMasked = SensitiveFields.IsSensitive(f.FieldName) })
+            .ToList();
 
         var findings = await db.Findings
             .Where(f => f.CaseId == caseId)

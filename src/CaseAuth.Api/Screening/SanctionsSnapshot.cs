@@ -37,6 +37,14 @@ public static class SanctionsSnapshots
                 "FIXTURE-002",
                 ApplicantKind.Entity,
                 ["DEMO BLOCKED COMPANY"],
+                ["SYNTHETIC"]),
+
+            // Invented name for the demo's sanctions persona (demo/personas.json), spelled
+            // differently from the applicant's so the demo shows a fuzzy near-match.
+            new SanctionsEntry(
+                "FIXTURE-003",
+                ApplicantKind.Individual,
+                ["RUSLAN TARKHOVSKIY"],
                 ["SYNTHETIC"])
         };
 

@@ -34,6 +34,45 @@ public class DocumentsController(
         return documents.Select(DocumentResponse.From).ToList();
     }
 
+    // Streams the stored file back so the review UI can show the document next to its
+    // extracted fields. Firm scoping comes from the case lookup, same as every other endpoint.
+    // The file is the applicant's ID or tax form, so every successful read is audited.
+    [HttpGet("{documentId:guid}/content")]
+    public async Task<IActionResult> Content(Guid caseId, Guid documentId, CancellationToken ct)
+    {
+        var c = await caseAccessor.GetScopedCaseAsync(db, caseId, ct);
+        var document = await db.Documents.FirstOrDefaultAsync(d => d.Id == documentId && d.CaseId == caseId, ct)
+            ?? throw new NotFoundApiException($"Document '{documentId}' was not found.");
+
+        // A row whose file has gone missing (fixture folder wiped, half-restored backup) is a
+        // 404 for the reviewer, not a 500.
+        Stream stream;
+        try
+        {
+            stream = await storage.OpenReadAsync(document.StorageKey, ct);
+        }
+        catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
+        {
+            throw new NotFoundApiException($"The stored file for document '{documentId}' is missing.");
+        }
+
+        // Recorded only once the file is open, so a missing file doesn't log a view that never
+        // happened. Same no-file-name rule as Document.Uploaded.
+        try
+        {
+            audit.Record(db, c.Id, "Document.Viewed", AuditOutcome.Success,
+                metadata: $"{{\"documentId\":\"{document.Id}\",\"documentType\":\"{document.DocumentType}\"}}");
+            await db.SaveChangesAsync(ct);
+        }
+        catch
+        {
+            await stream.DisposeAsync();
+            throw;
+        }
+
+        return File(stream, document.ContentType);
+    }
+
     [HttpPost]
     [RequestSizeLimit(20 * 1024 * 1024)]
     public async Task<ActionResult<DocumentResponse>> Upload(

@@ -9,3 +9,8 @@ fixture-uploads/
 *.user
 
 node_modules/
+
+# Dashboard
+dashboard/node_modules/
+dashboard/dist/
+*.tsbuildinfo

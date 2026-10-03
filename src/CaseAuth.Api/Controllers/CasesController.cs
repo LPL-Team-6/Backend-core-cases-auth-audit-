@@ -3,6 +3,7 @@ using CaseAuth.Api.Contracts;
 using CaseAuth.Api.Data;
 using CaseAuth.Api.Entities;
 using CaseAuth.Api.Errors;
+using CaseAuth.Api.Screening;
 using CaseAuth.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,7 +18,8 @@ public class CasesController(
     CaseAuthDbContext db,
     ICurrentUser currentUser,
     ICaseAccessor caseAccessor,
-    IAuditService audit) : ControllerBase
+    IAuditService audit,
+    ScreeningOptions screeningOptions) : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult<CaseResponse>> Create([FromBody] CreateCaseRequest request, CancellationToken ct)
@@ -50,7 +52,7 @@ public class CasesController(
         audit.Record(db, newCase.Id, "Case.Created", AuditOutcome.Success);
         await db.SaveChangesAsync(ct);
 
-        return CreatedAtAction(nameof(Get), new { id = newCase.Id }, CaseResponse.From(newCase));
+        return CreatedAtAction(nameof(Get), new { id = newCase.Id }, CaseResponse.From(newCase, [], screeningOptions));
     }
 
     [HttpGet]
@@ -63,14 +65,22 @@ public class CasesController(
             .OrderByDescending(c => c.CreatedAt)
             .ToListAsync(ct);
 
-        return cases.Select(CaseResponse.From).ToList();
+        // One query for every case's finding scores, rather than one per case.
+        var caseIds = cases.Select(c => c.Id).ToList();
+        var scoresByCase = (await db.Findings
+                .Where(f => caseIds.Contains(f.CaseId))
+                .Select(f => new { f.CaseId, f.Code, f.Score })
+                .ToListAsync(ct))
+            .ToLookup(f => f.CaseId, f => (f.Code, f.Score));
+
+        return cases.Select(c => CaseResponse.From(c, scoresByCase[c.Id], screeningOptions)).ToList();
     }
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<CaseResponse>> Get(Guid id, CancellationToken ct)
     {
         var c = await caseAccessor.GetScopedCaseAsync(db, id, ct, includeApplicant: true);
-        return CaseResponse.From(c);
+        return CaseResponse.From(c, await FindingScoresAsync(c.Id, ct), screeningOptions);
     }
 
     [HttpPost("{id:guid}/extract")]
@@ -116,6 +126,11 @@ public class CasesController(
         audit.Record(db, c.Id, $"Case.{action}", AuditOutcome.Success);
         await db.SaveChangesAsync(ct);
 
-        return CaseResponse.From(c);
+        return CaseResponse.From(c, await FindingScoresAsync(c.Id, ct), screeningOptions);
     }
+
+    private async Task<List<(string Code, double? Score)>> FindingScoresAsync(Guid caseId, CancellationToken ct) =>
+        (await db.Findings.Where(f => f.CaseId == caseId).Select(f => new { f.Code, f.Score }).ToListAsync(ct))
+            .Select(f => (f.Code, f.Score))
+            .ToList();
 }

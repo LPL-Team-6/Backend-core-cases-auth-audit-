@@ -11,7 +11,9 @@ public record AiReviewInputFieldResponse(
     Guid DocumentId,
     DocumentType DocumentType,
     string FieldName,
+    // Last four only for tax IDs (IsMasked = true) - see Services/SensitiveFields.
     string FieldValue,
+    bool IsMasked,
     double? Confidence);
 
 public record AiReviewInputFindingResponse(
