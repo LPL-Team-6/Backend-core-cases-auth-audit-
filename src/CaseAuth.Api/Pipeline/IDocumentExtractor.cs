@@ -13,9 +13,9 @@ public interface IDocumentExtractor
     Task<IReadOnlyList<ExtractedFieldResult>> ExtractAsync(Document document, CancellationToken ct);
 }
 
-// Registered by default until Teammate 1's real extractors exist. Returns nothing - this lets
-// the Extract pipeline step run end to end (and the case transition happen) without fabricating
-// field data that would look like a real extraction result.
+// Returns nothing - lets the Extract pipeline step run end to end (and the case transition
+// happen) without fabricating field data. No longer the default registration (Program.cs uses
+// PdfTextDocumentExtractor); kept for tests or setups that want extraction switched off.
 public class FixtureDocumentExtractor : IDocumentExtractor
 {
     public Task<IReadOnlyList<ExtractedFieldResult>> ExtractAsync(Document document, CancellationToken ct) =>

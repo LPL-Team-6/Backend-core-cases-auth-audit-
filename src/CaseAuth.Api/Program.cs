@@ -65,7 +65,7 @@ builder.Services.AddScoped<IFileStorageService>(sp =>
 
 // --- Background pipeline ---------------------------------------------------------------
 builder.Services.Configure<PipelineOptions>(builder.Configuration.GetSection(PipelineOptions.SectionName));
-builder.Services.AddScoped<IDocumentExtractor, FixtureDocumentExtractor>();
+builder.Services.AddScoped<IDocumentExtractor, PdfTextDocumentExtractor>();
 
 var screeningOptions = new ScreeningOptions();
 builder.Configuration.GetSection("Screening").Bind(screeningOptions);
