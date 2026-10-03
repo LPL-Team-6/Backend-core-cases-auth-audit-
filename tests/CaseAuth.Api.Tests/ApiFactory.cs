@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using CaseAuth.Api.Pipeline;
+using Microsoft.Data.Sqlite;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,6 +50,8 @@ public class ApiFactory : WebApplicationFactory<Program>
             return;
         }
 
+        // Pooled SQLite connections keep the file open, and Windows won't delete an open file.
+        SqliteConnection.ClearAllPools();
         File.Delete(_dbPath);
         if (Directory.Exists(_storageRoot))
         {
